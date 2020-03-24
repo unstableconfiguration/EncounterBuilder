@@ -11,7 +11,10 @@ let EncounterBuilder = function() {
     }
 
     builder._setDefaults = function(arguments) { 
-        // sets defaults for players, difficulty, count range, cr range 
+        arguments.players = arguments.players || [];
+        arguments.crRange = arguments.crRange || { min : .135, max : 30 };
+        arguments.monsterCountRange = arguments.monsterCountRange || { min : 1, max : 15 };
+        arguments.difficulty = arguments.difficulty || 'Medium';
     }
 
     builder._getGroupXPThreshold = function(players, difficulty) {
