@@ -48,11 +48,19 @@ let EncounterBuilder = function() {
         // 21-30
         21 : 33000, 22 : 41000, 23 : 50000, 24 : 62000, 25 : 75000, 26 : 90000, 27 : 105000, 28 : 120000, 29 : 135000, 30 : 155000
     }
+
     builder._getNextEncounter = function(encounter) { 
         // encounter contains count, cr range, current/previous cr array, cost, and whether it is done 
         // iterate cr array by 1, calculate cost. and return  
+
+        
+        encounter.cost = builder._getEncounterCost(encounter.crs);
+        return encounter;
     }
 
+    /* Get Encounter Cost 
+        Looks up the XP values for the provided challenge ratings and sums their values. 
+    */
     builder._getEncounterCost = function(crs = []) { 
         return crs.reduce((accumulator, cr) => { 
             return accumulator + builder._challengeRatings[cr];
