@@ -3,6 +3,12 @@ let assert = chai.assert;
 let builder = new EncounterBuilder();
 
 
+describe('_getEncounters', function() { 
+    it('should have intregration tests', function() { 
+        assert.isTrue(false, 'finish up with integration tests')
+    });
+});
+
 describe('_getMultiplier', function() { 
     let fightSizeTests = [
         { playerCount : 3, monsterCount : 1, expectedValue : 1, description : 'should return a value of 1 with more than 2 players and 1 monster' },

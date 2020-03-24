@@ -43,10 +43,22 @@ let EncounterBuilder = function() {
         return fightSize;
     }
 
-    builder._getEncounters = function(xpRange, countRange, crRange) {
-        // iterate through monster counts low to high 
-        // build up possible encounters within cr range 
-        // add any encounters that fit within xp budget
+    builder._getEncounters = function(playerCount, xpRange, countRange, crRange) {
+        let encounters = [];
+
+        for(let i = countRange.min; i <= countRange.max; i ++) {
+            let multiplier = builder._getMultiplier(playerCount, i);
+            let encounter = { count : i, cost : 0, crRange : crRange, crs : null, done : false }
+            while(!encounter.done) {
+                encounter = builder._getNextEncounter(encounter);
+                encounter.cost = encounter.cost * multiplier;
+                if(encounter.cost > xpRange.min && encounter.cost < xpRange.max) {
+                    encounters.push(encounter);
+                }
+            }
+        }
+
+        return encounters;
     }
 
     builder._challengeRatingXPValues = { 
