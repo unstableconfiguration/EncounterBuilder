@@ -3,19 +3,19 @@ let assert = chai.assert;
 let builder = new EncounterBuilder();
 
 
-describe('_getFightSize', function() { 
+describe('_getMultiplier', function() { 
     let fightSizeTests = [
         { playerCount : 3, monsterCount : 1, expectedValue : 1, description : 'should return a value of 1 with more than 2 players and 1 monster' },
-        { playerCount : 2, monsterCount : 1, expectedValue : 2, description : 'should return a value of 2 with 1-2 players and 1 monster' },
-        { playerCount : 5, monsterCount : 2, expectedValue : 2, description : 'should return a value of 2 with 3-5 players and 2 monsters' },
+        { playerCount : 2, monsterCount : 1, expectedValue : 1.5, description : 'should return a value of 1.5 with 1-2 players and 1 monster' },
+        { playerCount : 5, monsterCount : 2, expectedValue : 1.5, description : 'should return a value of 1.5 with 3-5 players and 2 monsters' },
         { playerCount : 6, monsterCount : 2, expectedValue : 1, description : 'should return a value of 1 with 6+ players and 2 monsters' },
-        { playerCount : 5, monsterCount : 13, expectedValue : 5, description : 'should return a value of 5 with 3-5 players and 11-14 monsters' },
-        { playerCount : 4, monsterCount : 30, expectedValue : 6, description : 'should return a value of 6 with 3-5 players and 15+ monsters' }        
+        { playerCount : 5, monsterCount : 13, expectedValue : 3, description : 'should return a value of 3 with 3-5 players and 11-14 monsters' },
+        { playerCount : 4, monsterCount : 30, expectedValue : 4, description : 'should return a value of 4 with 3-5 players and 15+ monsters' }        
     ]
 
     fightSizeTests.forEach((fight) => { 
         it(fight.description, function() {
-            let fightSize = builder._getFightSize(fight.playerCount, fight.monsterCount);
+            let fightSize = builder._getMultiplier(fight.playerCount, fight.monsterCount);
             assert.isTrue(fightSize === fight.expectedValue);
         });
     });

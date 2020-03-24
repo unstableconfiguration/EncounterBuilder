@@ -23,17 +23,12 @@ let EncounterBuilder = function() {
         // gets the xp threshold for a player by level and difficulty 
     }
 
-    let xpMultipliers = { /* fightSize : multiplier */ }
+    let xpMultipliers = { 1 : 1, 2 : 1.5, 3 : 2, 4 : 2.5, 5 : 3, 6 : 4 };
     builder._getMultiplier = function(playerCount, monsterCount) { 
-        // gets multiplier based on fight size 
+        let fightSize = builder._getFightSize(playerCount, monsterCount);
+        return xpMultipliers[fightSize];
     }
 
-    // size 1-6
-    // multiplier based on 1-6
-    // 
-    builder._fightSizeMultipliers = { 
-        
-    }
     builder._getFightSize = function(playerCount, monsterCount) {
         let fightSize = 0;
         if(monsterCount === 1) { fightSize = 1; }
