@@ -16,7 +16,7 @@ describe('_getFightSize', function() {
     fightSizeTests.forEach((fight) => { 
         it(fight.description, function() {
             let fightSize = builder._getFightSize(fight.playerCount, fight.monsterCount);
-            assert.isEqual(fightSize, fight.expectedValue);
+            assert.isTrue(fightSize === fight.expectedValue);
         });
     });
 });
@@ -43,7 +43,6 @@ describe('_getNextEncounter', function() {
     it('should set the cost of the encounter', function() { 
         let encounter = { count : 3, crRange : { min : 0, max : 3 }, crs : [1, 1, .5] }
         let iteration = builder._getNextEncounter(encounter);
-        console.log(iteration);
         assert.isTrue(iteration.cost === 600);
     });
 });

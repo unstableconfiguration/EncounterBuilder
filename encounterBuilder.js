@@ -28,8 +28,24 @@ let EncounterBuilder = function() {
         // gets multiplier based on fight size 
     }
 
+    // size 1-6
+    // multiplier based on 1-6
+    // 
+    builder._fightSizeMultipliers = { 
+        
+    }
     builder._getFightSize = function(playerCount, monsterCount) {
-        // gets fight size based on relative number of combatants. 
+        let fightSize = 0;
+        if(monsterCount === 1) { fightSize = 1; }
+        else if (monsterCount === 2) { fightSize = 2; }
+        else if (monsterCount > 2 && monsterCount <= 6) { fightSize = 3; }
+        else if (monsterCount >= 7 && monsterCount <= 10) { fightSize = 4; }
+        else if (monsterCount >= 11 && monsterCount <= 14) { fightSize = 5; }
+        else if (monsterCount >= 15) { fightSize = 6; }
+        
+        if(playerCount <= 2 && fightSize < 6) { fightSize++; }
+        else if (playerCount >= 6 && fightSize > 1) { fightSize--; }
+        return fightSize;
     }
 
     builder._getEncounters = function(xpRange, countRange, crRange) {
