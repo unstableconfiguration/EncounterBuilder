@@ -38,7 +38,7 @@ let EncounterBuilder = function() {
         // add any encounters that fit within xp budget
     }
 
-    let challengeRatings = { /* cr : xp */ }
+    builder._challengeRatings = { /* cr : xp */ }
     builder._getNextEncounter = function(encounter) { 
         // encounter contains count, cr range, current/previous cr array, cost, and whether it is done 
         // iterate cr array by 1, calculate cost. and return  
