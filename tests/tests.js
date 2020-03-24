@@ -25,7 +25,8 @@ describe('_getNextEncounter', function() {
     it('should set the cost of the encounter', function() { 
         let encounter = { count : 3, crRange : { min : 0, max : 3 }, crs : [1, 1, .5] }
         let iteration = builder._getNextEncounter(encounter);
-        assert.istrue(iteration.cost === 600);
+        console.log(iteration);
+        assert.isTrue(iteration.cost === 600);
     });
 });
 
