@@ -3,6 +3,23 @@ let assert = chai.assert;
 let builder = new EncounterBuilder();
 
 
+
+describe('_getGroupThresholdRange', function() { 
+    let groups = [
+        { difficulty : 'Medium', players : [{ level : 1 }, { level : 1 }, { level : 1 }, { level : 1 } ], expectedRange : { min : 101, max : 200 }, description : 'should return a value of 101-200 for four level 1 players and a medium encounter' },
+        { difficulty : 'Deadly', players : [{ level : 1 }, { level : 20 } ], expectedRange : { min : 8576, max : 12800 }, description : 'should return a value of 8576-12800 for a level 1 and level 20 player group and a Deadly encounter' },
+        { difficulty : 'Easy', players : [{ level : 9 } ], expectedRange : { min : 414, max : 550 }, description : 'should return a value of 414-550 for 1 level 9 player and an Easy encounter' }
+   
+    ];
+    groups.forEach((group) => { 
+        it(group.description, function() { 
+            let xpRange = builder._getGroupThresholdRange(group.players, group.difficulty);
+            console.log(group, xpRange);
+            assert.isTrue(xpRange.min === group.expectedRange.min && xpRange.max === group.expectedRange.max); 
+        });
+    });
+});
+
 describe('_getEncounters', function() { 
     it('should have intregration tests', function() { 
         assert.isTrue(false, 'finish up with integration tests')

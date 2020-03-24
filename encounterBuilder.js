@@ -6,8 +6,8 @@ let EncounterBuilder = function() {
 
     builder.getEncounters = function(arguments) {
         arguments = builder._setDefaults(arguments);
-        let groupThreshold = builder.getGroupXPThreshold(arguments.players, arguments.difficulty);
-        return builder._getEncounters(groupthreshold, arguments.monsterCount, arguments.monsterCR);
+        let groupThresholdRange = builder._getGroupThresholdRange(arguments.players, arguments.difficulty);
+        return builder._getEncounters(groupThresholdRange, arguments.monsterCountRange, arguments.crRange);
     }
 
     builder._setDefaults = function(arguments) { 
@@ -17,8 +17,13 @@ let EncounterBuilder = function() {
         arguments.difficulty = arguments.difficulty || 'Medium';
     }
 
-    builder._getGroupXPThreshold = function(players, difficulty) {
-        // combines the player xp thresholds
+    builder._getGroupThresholdRange = function(players, difficulty) {
+        return players.reduce((accumulator, player) => {
+            let playerXPThreshold = builder._getPlayerThresholdRange(player, difficulty);
+            accumulator.min += playerXPThreshold.min;
+            accumulator.max += playerXPThreshold.max;
+            return accumulator;
+        }, { min : 1, max : 0 });
     }
 
     builder._xpThresholds = { 
@@ -43,8 +48,23 @@ let EncounterBuilder = function() {
         19 : { 'Easy' : 2400, 'Medium' : 4900, 'Hard' : 7300, 'Deadly' : 10900 },
         20 : { 'Easy' : 2800, 'Medium' : 5700, 'Hard' : 8500, 'Deadly' : 12700 },
     }
-    builder._getPlayerXPThreshold = function(player, difficulty) { 
-        return builder._xpThresholds[player.level][difficulty]; 
+    builder._getPlayerThresholdRange = function(player, difficulty) { 
+        let playerXPThreshold = { min : 0, max : 0 };
+        
+        let lowerDifficulty = 'Easy';
+        if(difficulty === 'Deadly') { lowerDifficulty = 'Hard'; }
+        else if (difficulty === 'Hard') { lowerDifficulty = 'Medium'; }
+        else if (difficulty === 'Medium') { lowerDifficulty = 'Easy'; }
+        
+        playerXPThreshold.max = builder._xpThresholds[player.level][difficulty];
+        if(difficulty === 'Easy') {
+            playerXPThreshold.min = Math.round(playerXPThreshold.max * .75);
+        }
+        else {
+            playerXPThreshold.min = builder._xpThresholds[player.level][lowerDifficulty];
+        }
+        
+        return playerXPThreshold;
     }
 
     let xpMultipliers = { 1 : 1, 2 : 1.5, 3 : 2, 4 : 2.5, 5 : 3, 6 : 4 };
