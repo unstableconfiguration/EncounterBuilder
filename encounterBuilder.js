@@ -7,7 +7,10 @@ let EncounterBuilder = function() {
     builder.getEncounters = function(arguments) {
         arguments = builder._setDefaults(arguments);
         let groupThresholdRange = builder._getGroupThresholdRange(arguments.players, arguments.difficulty);
-        return builder._getEncounters(groupThresholdRange, arguments.monsterCountRange, arguments.crRange);
+        arguments.crRange.max = _getCRCieling(groupThresholdRange, arguments.crRange);
+        arguments.crRange.min = _getCRFloor(arguments.crRange);
+
+        return builder._getEncounters(arguments.players.length, groupThresholdRange, arguments.monsterCountRange, arguments.crRange);
     }
 
     builder._setDefaults = function(arguments) { 
@@ -24,6 +27,30 @@ let EncounterBuilder = function() {
             accumulator.max += playerXPThreshold.max;
             return accumulator;
         }, { min : 1, max : 0 });
+    }
+
+    /* If our crRange.max exceeds our xpRange.max, we can lower it to filter out monsters of overly high CRs */
+    let _getCRCieling = function(xpRange, crRange) {
+    for(let i = crRange.max; i > 0; i--){
+        if(builder._challengeRatingXPValues[crRange.max] > xpRange.max) {
+            crRange.max = builder._lowerChallengeRating(crRange.max);
+        }
+        else { break; }
+    }
+    return crRange.max;
+    }
+    
+    /* To avoid wasting cycles on too-weak monsters, crRange.min must be at least 1/10th the xp of crRange.max
+        This gets a lot more generous as levels increase, and mostly serves to filter out CR 0-.5 early as those 
+        quickly become one-hit-kills */
+    let _getCRFloor = function(crRange) {
+        for(let i = crRange.min; i <= crRange.max; i++) {
+            if(builder._challengeRatingXPValues[crRange.min] < builder._challengeRatingXPValues[crRange.max] / 10) {
+                crRange.min = builder._raiseChallengeRating(crRange.min);
+            }
+            else { break; }
+        }
+        return crRange.min;
     }
 
     builder._xpThresholds = { 
@@ -87,14 +114,8 @@ let EncounterBuilder = function() {
         return fightSize;
     }
 
-    // what is this doing now: 
-    // mostly just calling other functions, so it is doing ok as an integration piece. 
-    // still need to mvoe that range capper. 
-
     builder._getEncounters = function(playerCount, xpRange, countRange, crRange) {
         let encounters = [];
-        crRange = _getCRCieling(xpRange, crRange);
-        crRange = _getCRFloor(crRange);
 
         for(let monsterCount = countRange.min; monsterCount <= countRange.max; monsterCount++) {
             let xpMultiplier = builder._getMultiplier(playerCount, monsterCount);
@@ -108,8 +129,6 @@ let EncounterBuilder = function() {
                     encounters.push(JSON.parse(JSON.stringify(encounter)));
                 }
 
-                // moving this would also mean passing around the range. 
-                // how bout getnextencounter does not set the xp cost, instead we branch that to another function 
                 /* Performance improvement. Once we have exceeded the xp budget we'll always exceed it with our highest value. */
                 if(encounter.xpCost > xpRange.max) {
                     encounter.crRange.max = builder._lowerChallengeRating(encounter.crRange.max);
@@ -122,30 +141,7 @@ let EncounterBuilder = function() {
         return encounters;
     }
 
-    /* If our crRange.max exceeds our xpRange.max, we can lower it to filter out monsters of overly high CRs */
-    let _getCRCieling = function(xpRange, crRange) {
-        for(let i = crRange.max; i > 0; i--){
-            if(builder._challengeRatingXPValues[crRange.max] > xpRange.max) {
-                crRange.max = builder._lowerChallengeRating(crRange.max);
-            }
-            else { break; }
-        }
-        return crRange;
-    }
-    
-    /* To avoid wasting cycles on too-weak monsters, crRange.min must be at least 1/10th the xp of crRange.max
-        This gets a lot more generous as levels increase, and mostly serves to filter out CR 0-.5 early as those 
-        quickly become one-hit-kills */
-    let _getCRFloor = function(crRange) {
-        for(let i = crRange.min; i <= crRange.max; i++) {
-            if(builder._challengeRatingXPValues[crRange.min] < builder._challengeRatingXPValues[crRange.max] / 10) {
-                crRange.min = builder._raiseChallengeRating(crRange.min);
-            }
-            else { break; }
-        }
-        return crRange;
-    }
-
+  
     builder._challengeRatingXPValues = { 
         /* 0, 1/8, 1/4, 1/2 */
         0 : 10, .135 : 25, .25 : 50, .5 : 100, 
@@ -175,6 +171,11 @@ let EncounterBuilder = function() {
         return cr;
     }
     
+    /* "Counts" through the possible arrangements of challenge ratings. 
+        Starts at the rightmost (idx = .length -1) value in the array. 
+            If that value is less than the max cr, it increases it by 1 and exits. 
+            If the value is at max cr, it recursively attempts the same thing to the next item
+    */
     builder._getNextEncounter = function(encounter) { 
         let iterateEncounter = function(idx) { 
             let value = encounter.crs[idx];
@@ -183,8 +184,11 @@ let EncounterBuilder = function() {
             }
             else { 
                 if(idx === 0) { return; }
-
                 iterateEncounter(idx-1);
+
+                /* Performance tweak. 
+                    Once a value iterates, there is no reason for values to its right to be of 
+                    a lower value than it. */
                 for(let i = idx-1; i < encounter.crs.length; i++) { 
                     encounter.crs[i] = encounter.crs[idx-1];
                 }

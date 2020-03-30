@@ -57,10 +57,28 @@ describe('_getMultiplier', function() {
 describe('_getNextEncounter', function() { 
 
     it('should iterate the array if one is provided', function() { 
-        let encounter = { count : 2, crRange : { min : 3, max : 6 }, crs : [3, 3], cost : 0, done : 0 }
+        let encounter = { monsterCount : 2, crRange : { min : 3, max : 6 }, crs : [3, 3], xpCost : 0  }
         let iteration = builder._getNextEncounter(encounter);
         assert.isTrue(iteration.crs[1] === 4);
     });
+
+    it('should iterate item at index-1 if item at index is at max cr', function() { 
+        let encounter = { monsterCount : 2, crRange : { min : 2, max : 8 }, crs : [4, 8], xpCost : 0 };
+        let iteration = builder._getNextEncounter(encounter);
+        assert.isTrue(iteration.crs[0] === 5);
+    });
+
+    it('should set all items with greater indices to the value of item at index when item at index iterates', function() { 
+        let encounter = { monsterCount : 3, crRange : { min : 2, max : 12 }, crs : [5, 12, 12], xpCost : 0 };
+        let iteration = builder._getNextEncounter(encounter);
+        assert.isTrue(!iteration.crs.some((cr) => { cr !== 6 }));
+    });
+
+    it('should do nothing if all crs are at their max', function() { 
+        let encounter = { monsterCount : 3, crRange : { min : 2, max : 12 }, crs : [12, 12, 12], xpCost : 0 };
+        let iteration = builder._getNextEncounter(encounter);
+        assert.isTrue(!iteration.crs.some((cr) => { cr !== 12 }));
+    })
     
 });
 
