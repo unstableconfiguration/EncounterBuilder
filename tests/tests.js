@@ -14,15 +14,25 @@ describe('_getGroupThresholdRange', function() {
     groups.forEach((group) => { 
         it(group.description, function() { 
             let xpRange = builder._getGroupThresholdRange(group.players, group.difficulty);
-            console.log(group, xpRange);
             assert.isTrue(xpRange.min === group.expectedRange.min && xpRange.max === group.expectedRange.max); 
         });
     });
 });
 
 describe('_getEncounters', function() { 
-    it('should have intregration tests', function() { 
-        assert.isTrue(false, 'finish up with integration tests')
+    let encounters = [
+        { playerCount : 4, xpRange : { min : 101, max : 200 }, countRange : { min : 1, max : 5 }, crRange : { min : 0, max : 5 }, description : 'test' }
+        //{ playerCount : 0, xpRange : { min : 0, max : 0 }, countRange : { min : 0, max : 0 }, crRange : { min : 0, max : 0 } },
+    ]
+
+    //function(playerCount, xpRange, countRange, crRange) 
+    
+    encounters.forEach((encounter) => { 
+        it(encounter.description, function() { 
+            let encounters = builder._getEncounters(encounter.playerCount, encounter.xpRange, encounter.countRange, encounter.crRange);
+            console.log(encounters);
+            assert.isTrue('false');
+        });
     });
 });
 

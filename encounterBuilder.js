@@ -87,24 +87,55 @@ let EncounterBuilder = function() {
         return fightSize;
     }
 
+
     builder._getEncounters = function(playerCount, xpRange, countRange, crRange) {
         let encounters = [];
+        crRange = _getCRCieling(xpRange, crRange);
+        crRange = _getCRFloor(crRange);
 
-        for(let i = countRange.min; i <= countRange.max; i ++) {
-            let multiplier = builder._getMultiplier(playerCount, i);
-            let encounter = { count : i, cost : 0, crRange : crRange, crs : null, done : false }
+        for(let monsterCount = countRange.min; monsterCount <= countRange.max; monsterCount++) {
+            let multiplier = builder._getMultiplier(playerCount, monsterCount);
+            let encounter = { count : monsterCount, cost : 0, crRange : crRange, crs : null, done : false }
+
             while(!encounter.done) {
                 encounter = builder._getNextEncounter(encounter);
                 encounter.cost = encounter.cost * multiplier;
-                if(encounter.cost > xpRange.min && encounter.cost < xpRange.max) {
-                    encounters.push(encounter);
+                if(encounter.cost > xpRange.min && encounter.cost <= xpRange.max) {
+                    encounters.push(JSON.parse(JSON.stringify(encounter)));
+                }
+                
+                /* Performance improvement. Once we have exceeded the xp budget we'll always exceed it with our highest value. */
+                if(encounter.cost > xpRange.max) {
+                    encounter.crRange.max = builder._lowerChallengeRating(encounter.crRange.max);
                 }
             }
         }
 
-        // integration tests. 
-
         return encounters;
+    }
+
+    /* If our crRange.max exceeds our xpRange.max, we can lower it to filter out monsters of overly high CRs */
+    let _getCRCieling = function(xpRange, crRange) {
+        for(let i = crRange.max; i > 0; i--){
+            if(builder._challengeRatingXPValues[crRange.max] > xpRange.max) {
+                crRange.max = builder._lowerChallengeRating(crRange.max);
+            }
+            else { break; }
+        }
+        return crRange;
+    }
+    
+    /* To avoid wasting cycles on too-weak monsters, crRange.min must be at least 1/10th the xp of crRange.max
+        This gets a lot more generous as levels increase, and mostly serves to filter out CR 0-.5 early as those 
+        quickly become one-hit-kills */
+    let _getCRFloor = function(crRange) {
+        for(let i = crRange.min; i <= crRange.max; i++) {
+            if(builder._challengeRatingXPValues[crRange.min] < builder._challengeRatingXPValues[crRange.max] / 10) {
+                crRange.min = builder._raiseChallengeRating(crRange.min);
+            }
+            else { break; }
+        }
+        return crRange;
     }
 
     builder._challengeRatingXPValues = { 
@@ -124,13 +155,26 @@ let EncounterBuilder = function() {
         20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30
     ];
 
+    builder._lowerChallengeRating = function(cr) {
+        if(cr > 0)
+            return builder._challengeRatings[builder._challengeRatings.indexOf(cr) - 1];
+        return cr;
+    }
+
+    builder._raiseChallengeRating = function(cr) { 
+        if(cr < 30)
+            return builder._challengeRatings[builder._challengeRatings.indexOf(cr) + 1];
+        return cr;
+    }
+
     builder._getNextEncounter = function(encounter) { 
+
         if(!encounter.crs) { 
             encounter.crs = _seedEncounter(encounter.count, encounter.crRange.min);
         }
         else { 
             encounter.crs = _iterateEncounter(encounter.crs, encounter.crRange.max);
-            if(encounter.crs[0] === encounter.crRange.max) {
+            if(encounter.crs[0] >= encounter.crRange.max) {
                 encounter.done = true;
             }
         }
@@ -144,21 +188,18 @@ let EncounterBuilder = function() {
         for(let i = 0; i < count; i++) {
             crs.push(crMin);
         }
+        return crs;
     }
 
     let _iterateEncounter = function(crs, crMax) {
         let iterateValue = function(idx) {
             let value = crs[idx];
             if(value < crMax) {
-                if(value >= 1) {
-                    value++;
-                }
-                else {
-                    value = builder._challengeRatings[builder._challengeRatings.indexOf(value) + 1];
-                }
-                crs[idx] = value;
+                crs[idx] = builder._raiseChallengeRating(value);
             }
             else {
+                if(idx === 0) { return; }
+
                 iterateValue(idx-1);
                 for(let i = idx-1; i < crs.length; i++) {
                     crs[i] = crs[idx-1];
