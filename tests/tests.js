@@ -76,7 +76,7 @@ describe('_getNextEncounter', function() {
     it('should set the cost of the encounter based on the sum of challenge ratings * multiplier', function() { 
         let encounter = { count : 3, crRange : { min : 0, max : 3 }, crs : [1, 1, .5], xpMultiplier : 1.5 }
         let iteration = builder._getNextEncounter(encounter);
-        assert.isTrue(iteration.xpThreshold === 900);
+        assert.isTrue(iteration.xpCost === 900);
     });
 });
 
