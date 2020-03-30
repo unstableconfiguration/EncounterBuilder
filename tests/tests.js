@@ -99,3 +99,15 @@ describe('_getCRCieling', function() {
     });
 });
 
+describe('_getCRFloor', function() { 
+    it('should raise the min cr to an xp value of at least 1/10th the max cr', function() { 
+        let crMin = builder._getCRFloor({ min : 1, max : 6 });
+        assert.isTrue(crMin === 2);
+    });
+
+    it('should not raise the min cr if it is already at least 1/10th the max cr', function() { 
+        let crMin = builder._getCRFloor({ min : 1, max : 5 });
+        assert.isTrue(crMin === 1);
+    });
+});
+

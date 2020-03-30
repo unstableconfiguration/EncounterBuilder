@@ -8,7 +8,7 @@ let EncounterBuilder = function() {
         arguments = builder._setDefaults(arguments);
         let groupThresholdRange = builder._getGroupThresholdRange(arguments.players, arguments.difficulty);
         arguments.crRange.max = builder._getCRCieling(groupThresholdRange, arguments.crRange);
-        arguments.crRange.min = _getCRFloor(arguments.crRange);
+        arguments.crRange.min = builder._getCRFloor(arguments.crRange);
 
         return builder._getEncounters(arguments.players.length, groupThresholdRange, arguments.monsterCountRange, arguments.crRange);
     }
@@ -43,7 +43,7 @@ let EncounterBuilder = function() {
     /* To avoid wasting cycles on too-weak monsters, crRange.min must be at least 1/10th the xp of crRange.max
         This gets a lot more generous as levels increase, and mostly serves to filter out CR 0-.5 early as those 
         quickly become one-hit-kills */
-    let _getCRFloor = function(crRange) {
+    builder._getCRFloor = function(crRange) {
         for(let i = crRange.min; i <= crRange.max; i++) {
             if(builder._challengeRatingXPValues[crRange.min] < builder._challengeRatingXPValues[crRange.max] / 10) {
                 crRange.min = builder._raiseChallengeRating(crRange.min);
