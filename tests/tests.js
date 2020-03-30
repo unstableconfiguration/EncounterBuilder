@@ -94,7 +94,8 @@ describe('_getCRCieling', function() {
     });
 
     it('should leave max cr if max cr has an xp value within the threshold', function() { 
-
+        let crMax = builder._getCRCieling({ min : 0, max : 1800 }, { min : 1, max : 4 });
+        assert.isTrue(crMax === 4);
     });
 });
 
