@@ -93,16 +93,19 @@ let EncounterBuilder = function() {
         crRange = _getCRFloor(crRange);
 
         for(let monsterCount = countRange.min; monsterCount <= countRange.max; monsterCount++) {
-            let multiplier = builder._getMultiplier(playerCount, monsterCount);
-            let encounter = { count : monsterCount, xpMultiplier : multiplier, xpCost : 0, crRange : crRange, crs : null, done : false }
+            let xpMultiplier = builder._getMultiplier(playerCount, monsterCount);
+            let encounter = { count : monsterCount, xpCost : 0, crRange : crRange, crs : null, done : false }
 
             while(!encounter.done) {
                 encounter = builder._getNextEncounter(encounter);
+                encounter.xpCost = builder._getEncounterCost(encounter.crs, xpMultiplier);
 
                 if(encounter.xpCost > xpRange.min && encounter.xpCost <= xpRange.max) {
                     encounters.push(JSON.parse(JSON.stringify(encounter)));
                 }
                 
+                // moving this would also mean passing around the range. 
+                // how bout getnextencounter does not set the xp cost, instead we branch that to another function 
                 /* Performance improvement. Once we have exceeded the xp budget we'll always exceed it with our highest value. */
                 if(encounter.xpCost > xpRange.max) {
                     encounter.crRange.max = builder._lowerChallengeRating(encounter.crRange.max);
@@ -165,11 +168,10 @@ let EncounterBuilder = function() {
             return builder._challengeRatings[builder._challengeRatings.indexOf(cr) + 1];
         return cr;
     }
-
+    
     builder._getNextEncounter = function(encounter) { 
-
         if(!encounter.crs) { 
-            encounter.crs = _seedEncounter(encounter.count, encounter.crRange.min);
+            encounter.crs = Array(encounter.count).fill(encounter.crRange.min);
         }
         else { 
             encounter.crs = _iterateEncounter(encounter.crs, encounter.crRange.max);
@@ -177,17 +179,7 @@ let EncounterBuilder = function() {
                 encounter.done = true;
             }
         }
-        
-        encounter.xpCost = builder._getEncounterCost(encounter.crs) * encounter.xpMultiplier;
         return encounter;
-    }
-
-    let _seedEncounter = function(count, crMin) { 
-        let crs = [];
-        for(let i = 0; i < count; i++) {
-            crs.push(crMin);
-        }
-        return crs;
     }
 
     let _iterateEncounter = function(crs, crMax) {
@@ -212,10 +204,12 @@ let EncounterBuilder = function() {
     /* Get Encounter Cost 
         Looks up the XP values for the provided challenge ratings and sums their values. 
     */
-    builder._getEncounterCost = function(crs = []) { 
-        return crs.reduce((accumulator, cr) => { 
+    builder._getEncounterCost = function(crs = [], xpMultiplier = 1) { 
+        let xpSum = crs.reduce((accumulator, cr) => { 
             return accumulator + builder._challengeRatingXPValues[cr];
         }, 0);
+
+        return xpSum * xpMultiplier;
     }
 
     return builder;

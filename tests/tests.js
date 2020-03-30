@@ -72,12 +72,6 @@ describe('_getNextEncounter', function() {
         let iteration = builder._getNextEncounter(encounter);
         assert.isTrue(iteration.done);
     });
-
-    it('should set the cost of the encounter based on the sum of challenge ratings * multiplier', function() { 
-        let encounter = { count : 3, crRange : { min : 0, max : 3 }, crs : [1, 1, .5], xpMultiplier : 1.5 }
-        let iteration = builder._getNextEncounter(encounter);
-        assert.isTrue(iteration.xpCost === 900);
-    });
 });
 
 describe('_getEncounterCost', function() { 
@@ -87,7 +81,7 @@ describe('_getEncounterCost', function() {
             { crs : [3, 4], xp : 1800 }
         ]
         sampleEncounters.forEach((encounter) => {
-            assert.isTrue(builder._getEncounterCost(encounter.crs) === encounter.xp);
+            assert.isTrue(builder._getEncounterCost(encounter.crs) === encounter.xp, 1);
         });
     });
     
@@ -97,6 +91,10 @@ describe('_getEncounterCost', function() {
     
     it('should return 0 when the provided array is empty', function() { 
         assert.isTrue(builder._getEncounterCost([]) === 0);
+    });
+
+    it('should modify the cost based on the xpMultiplier', function() { 
+        assert.isTrue(builder._getEncounterCost([1, 1, .5], 1.5) === 750);
     });
 });
 
