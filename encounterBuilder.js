@@ -87,7 +87,6 @@ let EncounterBuilder = function() {
         return fightSize;
     }
 
-
     builder._getEncounters = function(playerCount, xpRange, countRange, crRange) {
         let encounters = [];
         crRange = _getCRCieling(xpRange, crRange);
@@ -95,17 +94,17 @@ let EncounterBuilder = function() {
 
         for(let monsterCount = countRange.min; monsterCount <= countRange.max; monsterCount++) {
             let multiplier = builder._getMultiplier(playerCount, monsterCount);
-            let encounter = { count : monsterCount, cost : 0, crRange : crRange, crs : null, done : false }
+            let encounter = { count : monsterCount, xpMultiplier : multiplier, xpThreshold : 0, crRange : crRange, crs : null, done : false }
 
             while(!encounter.done) {
                 encounter = builder._getNextEncounter(encounter);
-                encounter.cost = encounter.cost * multiplier;
-                if(encounter.cost > xpRange.min && encounter.cost <= xpRange.max) {
+
+                if(encounter.xpThreshold > xpRange.min && encounter.xpThreshold <= xpRange.max) {
                     encounters.push(JSON.parse(JSON.stringify(encounter)));
                 }
                 
                 /* Performance improvement. Once we have exceeded the xp budget we'll always exceed it with our highest value. */
-                if(encounter.cost > xpRange.max) {
+                if(encounter.xpThreshold > xpRange.max) {
                     encounter.crRange.max = builder._lowerChallengeRating(encounter.crRange.max);
                 }
             }
@@ -179,7 +178,7 @@ let EncounterBuilder = function() {
             }
         }
         
-        encounter.cost = builder._getEncounterCost(encounter.crs);
+        encounter.xpThreshold = builder._getEncounterCost(encounter.crs) * encounter.xpMultiplier;
         return encounter;
     }
 
