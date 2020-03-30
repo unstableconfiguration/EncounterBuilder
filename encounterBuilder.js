@@ -4,6 +4,60 @@
 let EncounterBuilder = function() {
     let builder = this;
 
+    /* Read-only values and look up tables based on book definitions */
+    Object.defineProperties(builder, {
+        xpThresholds : { 
+            value : {
+                1 : { 'Easy' : 25,    'Medium' : 50,   'Hard' : 75,   'Deadly' : 100 },
+                2 : { 'Easy' : 50,    'Medium' : 100,  'Hard' : 150,  'Deadly' : 200 },
+                3 : { 'Easy' : 75,    'Medium' : 150,  'Hard' : 225,  'Deadly' : 400 },
+                4 : { 'Easy' : 125,   'Medium' : 250,  'Hard' : 375,  'Deadly' : 500 },
+                5 : { 'Easy' : 250,   'Medium' : 500,  'Hard' : 750,  'Deadly' : 1100 },
+                6 : { 'Easy' : 300,   'Medium' : 600,  'Hard' : 900,  'Deadly' : 1400 },
+                7 : { 'Easy' : 350,   'Medium' : 750,  'Hard' : 1100, 'Deadly' : 1700 },
+                8 : { 'Easy' : 450,   'Medium' : 900,  'Hard' : 1400, 'Deadly' : 2100 },
+                9 : { 'Easy' : 550,   'Medium' : 1100, 'Hard' : 1600, 'Deadly' : 2400 },
+                10 : { 'Easy' : 600,  'Medium' : 1200, 'Hard' : 1900, 'Deadly' : 2800 },
+                11 : { 'Easy' : 800,  'Medium' : 1600, 'Hard' : 2400, 'Deadly' : 3600 },
+                12 : { 'Easy' : 1000, 'Medium' : 2000, 'Hard' : 3000, 'Deadly' : 4500 },
+                13 : { 'Easy' : 1100, 'Medium' : 2200, 'Hard' : 3400, 'Deadly' : 5100 },
+                14 : { 'Easy' : 1250, 'Medium' : 2500, 'Hard' : 3800, 'Deadly' : 5700 },
+                15 : { 'Easy' : 1400, 'Medium' : 2800, 'Hard' : 4300, 'Deadly' : 6400 },
+                16 : { 'Easy' : 1600, 'Medium' : 3200, 'Hard' : 4800, 'Deadly' : 7200 },
+                17 : { 'Easy' : 2000, 'Medium' : 3900, 'Hard' : 5900, 'Deadly' : 8800 },
+                18 : { 'Easy' : 2100, 'Medium' : 4200, 'Hard' : 6300, 'Deadly' : 9500 },
+                19 : { 'Easy' : 2400, 'Medium' : 4900, 'Hard' : 7300, 'Deadly' : 10900 },
+                20 : { 'Easy' : 2800, 'Medium' : 5700, 'Hard' : 8500, 'Deadly' : 12700 },
+            },
+            writable : false
+        },
+        xpMultipliers : { 
+            value : { 1 : 1, 2 : 1.5, 3 : 2, 4 : 2.5, 5 : 3, 6 : 4 },
+            writable : false
+        },
+        challengeRatingXPValues : {
+            value :  { 
+                /* 0, 1/8, 1/4, 1/2 */
+                0 : 10, .135 : 25, .25 : 50, .5 : 100, 
+                // 1-10
+                1 : 200, 2 : 450, 3 : 700, 4 : 1100, 5 : 1800, 6 : 2300, 7 : 2900, 8 : 3900, 9 : 5000, 10 : 5900,
+                // 11-20
+                11 : 7200, 12 : 8400, 13 : 10000, 14 : 11500, 15 : 13000, 16 : 15000, 17 : 18000, 19 : 22000, 20 : 25000,
+                // 21-30
+                21 : 33000, 22 : 41000, 23 : 50000, 24 : 62000, 25 : 75000, 26 : 90000, 27 : 105000, 28 : 120000, 29 : 135000, 30 : 155000
+            },
+            writable : false 
+        },
+        challengeRatings : {
+            value : [
+                0, .135, .25, .5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 
+                10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 
+                20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30
+            ],
+            writable : false
+        }
+    });
+
     builder.getEncounters = function(arguments) {
         arguments = builder._setDefaults(arguments);
         let groupThresholdRange = builder._getGroupThresholdRange(arguments.players, arguments.difficulty);
@@ -31,13 +85,13 @@ let EncounterBuilder = function() {
 
     /* If our crRange.max exceeds our xpRange.max, we can lower it to filter out monsters of overly high CRs */
     builder._getCRCieling = function(xpRange, crRange) {
-    for(let i = crRange.max; i > 0; i--){
-        if(builder._challengeRatingXPValues[crRange.max] > xpRange.max) {
-            crRange.max = builder._lowerChallengeRating(crRange.max);
+        for(let i = crRange.max; i > 0; i--){
+            if(builder.challengeRatingXPValues[crRange.max] > xpRange.max) {
+                crRange.max = builder._lowerChallengeRating(crRange.max);
+            }
+            else { break; }
         }
-        else { break; }
-    }
-    return crRange.max;
+        return crRange.max;
     }
     
     /* To avoid wasting cycles on too-weak monsters, crRange.min must be at least 1/10th the xp of crRange.max
@@ -45,7 +99,7 @@ let EncounterBuilder = function() {
         quickly become one-hit-kills */
     builder._getCRFloor = function(crRange) {
         for(let i = crRange.min; i <= crRange.max; i++) {
-            if(builder._challengeRatingXPValues[crRange.min] < builder._challengeRatingXPValues[crRange.max] / 10) {
+            if(builder.challengeRatingXPValues[crRange.min] < builder.challengeRatingXPValues[crRange.max] / 10) {
                 crRange.min = builder._raiseChallengeRating(crRange.min);
             }
             else { break; }
@@ -53,28 +107,6 @@ let EncounterBuilder = function() {
         return crRange.min;
     }
 
-    builder._xpThresholds = { 
-        1 : { 'Easy' : 25,    'Medium' : 50,   'Hard' : 75,   'Deadly' : 100 },
-        2 : { 'Easy' : 50,    'Medium' : 100,  'Hard' : 150,  'Deadly' : 200 },
-        3 : { 'Easy' : 75,    'Medium' : 150,  'Hard' : 225,  'Deadly' : 400 },
-        4 : { 'Easy' : 125,   'Medium' : 250,  'Hard' : 375,  'Deadly' : 500 },
-        5 : { 'Easy' : 250,   'Medium' : 500,  'Hard' : 750,  'Deadly' : 1100 },
-        6 : { 'Easy' : 300,   'Medium' : 600,  'Hard' : 900,  'Deadly' : 1400 },
-        7 : { 'Easy' : 350,   'Medium' : 750,  'Hard' : 1100, 'Deadly' : 1700 },
-        8 : { 'Easy' : 450,   'Medium' : 900,  'Hard' : 1400, 'Deadly' : 2100 },
-        9 : { 'Easy' : 550,   'Medium' : 1100, 'Hard' : 1600, 'Deadly' : 2400 },
-        10 : { 'Easy' : 600,  'Medium' : 1200, 'Hard' : 1900, 'Deadly' : 2800 },
-        11 : { 'Easy' : 800,  'Medium' : 1600, 'Hard' : 2400, 'Deadly' : 3600 },
-        12 : { 'Easy' : 1000, 'Medium' : 2000, 'Hard' : 3000, 'Deadly' : 4500 },
-        13 : { 'Easy' : 1100, 'Medium' : 2200, 'Hard' : 3400, 'Deadly' : 5100 },
-        14 : { 'Easy' : 1250, 'Medium' : 2500, 'Hard' : 3800, 'Deadly' : 5700 },
-        15 : { 'Easy' : 1400, 'Medium' : 2800, 'Hard' : 4300, 'Deadly' : 6400 },
-        16 : { 'Easy' : 1600, 'Medium' : 3200, 'Hard' : 4800, 'Deadly' : 7200 },
-        17 : { 'Easy' : 2000, 'Medium' : 3900, 'Hard' : 5900, 'Deadly' : 8800 },
-        18 : { 'Easy' : 2100, 'Medium' : 4200, 'Hard' : 6300, 'Deadly' : 9500 },
-        19 : { 'Easy' : 2400, 'Medium' : 4900, 'Hard' : 7300, 'Deadly' : 10900 },
-        20 : { 'Easy' : 2800, 'Medium' : 5700, 'Hard' : 8500, 'Deadly' : 12700 },
-    }
     builder._getPlayerThresholdRange = function(player, difficulty) { 
         let playerXPThreshold = { min : 0, max : 0 };
         
@@ -83,21 +115,20 @@ let EncounterBuilder = function() {
         else if (difficulty === 'Hard') { lowerDifficulty = 'Medium'; }
         else if (difficulty === 'Medium') { lowerDifficulty = 'Easy'; }
         
-        playerXPThreshold.max = builder._xpThresholds[player.level][difficulty];
+        playerXPThreshold.max = builder.xpThresholds[player.level][difficulty];
         if(difficulty === 'Easy') {
             playerXPThreshold.min = Math.round(playerXPThreshold.max * .75);
         }
         else {
-            playerXPThreshold.min = builder._xpThresholds[player.level][lowerDifficulty];
+            playerXPThreshold.min = builder.xpThresholds[player.level][lowerDifficulty];
         }
         
         return playerXPThreshold;
     }
 
-    let xpMultipliers = { 1 : 1, 2 : 1.5, 3 : 2, 4 : 2.5, 5 : 3, 6 : 4 };
     builder._getMultiplier = function(playerCount, monsterCount) { 
         let fightSize = builder._getFightSize(playerCount, monsterCount);
-        return xpMultipliers[fightSize];
+        return builder.xpMultipliers[fightSize];
     }
 
     builder._getFightSize = function(playerCount, monsterCount) {
@@ -141,33 +172,15 @@ let EncounterBuilder = function() {
         return encounters;
     }
 
-  
-    builder._challengeRatingXPValues = { 
-        /* 0, 1/8, 1/4, 1/2 */
-        0 : 10, .135 : 25, .25 : 50, .5 : 100, 
-        // 1-10
-        1 : 200, 2 : 450, 3 : 700, 4 : 1100, 5 : 1800, 6 : 2300, 7 : 2900, 8 : 3900, 9 : 5000, 10 : 5900,
-        // 11-20
-        11 : 7200, 12 : 8400, 13 : 10000, 14 : 11500, 15 : 13000, 16 : 15000, 17 : 18000, 19 : 22000, 20 : 25000,
-        // 21-30
-        21 : 33000, 22 : 41000, 23 : 50000, 24 : 62000, 25 : 75000, 26 : 90000, 27 : 105000, 28 : 120000, 29 : 135000, 30 : 155000
-    };
-
-    builder._challengeRatings = [
-        0, .135, .25, .5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 
-        10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 
-        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30
-    ];
-
     builder._lowerChallengeRating = function(cr) {
         if(cr > 0)
-            return builder._challengeRatings[builder._challengeRatings.indexOf(cr) - 1];
+            return builder.challengeRatings[builder.challengeRatings.indexOf(cr) - 1];
         return cr;
     }
 
     builder._raiseChallengeRating = function(cr) { 
         if(cr < 30)
-            return builder._challengeRatings[builder._challengeRatings.indexOf(cr) + 1];
+            return builder.challengeRatings[builder.challengeRatings.indexOf(cr) + 1];
         return cr;
     }
     
@@ -204,7 +217,7 @@ let EncounterBuilder = function() {
     */
     builder._getEncounterCost = function(crs = [], xpMultiplier = 1) { 
         let xpSum = crs.reduce((accumulator, cr) => { 
-            return accumulator + builder._challengeRatingXPValues[cr];
+            return accumulator + builder.challengeRatingXPValues[cr];
         }, 0);
 
         return xpSum * xpMultiplier;
