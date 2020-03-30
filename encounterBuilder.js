@@ -87,6 +87,10 @@ let EncounterBuilder = function() {
         return fightSize;
     }
 
+    // what is this doing now: 
+    // mostly just calling other functions, so it is doing ok as an integration piece. 
+    // still need to mvoe that range capper. 
+
     builder._getEncounters = function(playerCount, xpRange, countRange, crRange) {
         let encounters = [];
         crRange = _getCRCieling(xpRange, crRange);
@@ -94,16 +98,9 @@ let EncounterBuilder = function() {
 
         for(let monsterCount = countRange.min; monsterCount <= countRange.max; monsterCount++) {
             let xpMultiplier = builder._getMultiplier(playerCount, monsterCount);
-            let encounter = { count : monsterCount, xpCost : 0, crRange : crRange, crs : null }
+            let encounter = { count : monsterCount, crRange : crRange, xpCost : 0, crs : Array(monsterCount).fill(crRange.min) }
 
-            // count is essential for the iterator 
-            // cost is part of the final product 
-            // range is essential for the iterator 
-
-            let breaker = 10000
-            while(breaker > 0) {
-                breaker--;
-
+            for(let loopMax = 10000; loopMax > 0; loopMax--) {
                 encounter = builder._getNextEncounter(encounter);
                 encounter.xpCost = builder._getEncounterCost(encounter.crs, xpMultiplier);
 
@@ -118,9 +115,7 @@ let EncounterBuilder = function() {
                     encounter.crRange.max = builder._lowerChallengeRating(encounter.crRange.max);
                 }
 
-                if(encounter.crs[0] >= encounter.crRange.max) {
-                    break;
-                }
+                if(encounter.crs[0] >= encounter.crRange.max) { break; }
             }
         }
 
@@ -181,32 +176,23 @@ let EncounterBuilder = function() {
     }
     
     builder._getNextEncounter = function(encounter) { 
-        if(!encounter.crs) { 
-            encounter.crs = Array(encounter.count).fill(encounter.crRange.min);
-        }
-        else { 
-            encounter.crs = _iterateEncounter(encounter.crs, encounter.crRange.max);
-        }
-        return encounter;
-    }
-
-    let _iterateEncounter = function(crs, crMax) {
-        let iterateValue = function(idx) {
-            let value = crs[idx];
-            if(value < crMax) {
-                crs[idx] = builder._raiseChallengeRating(value);
+        let iterateEncounter = function(idx) { 
+            let value = encounter.crs[idx];
+            if(value < encounter.crRange.max) {
+                encounter.crs[idx] = builder._raiseChallengeRating(value);
             }
-            else {
+            else { 
                 if(idx === 0) { return; }
 
-                iterateValue(idx-1);
-                for(let i = idx-1; i < crs.length; i++) {
-                    crs[i] = crs[idx-1];
+                iterateEncounter(idx-1);
+                for(let i = idx-1; i < encounter.crs.length; i++) { 
+                    encounter.crs[i] = encounter.crs[idx-1];
                 }
             }
         }
-        iterateValue(crs.length-1);
-        return crs;
+        iterateEncounter(encounter.crs.length-1);
+    
+        return encounter;
     }
 
     /* Get Encounter Cost 

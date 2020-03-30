@@ -55,11 +55,6 @@ describe('_getMultiplier', function() {
 });
 
 describe('_getNextEncounter', function() { 
-    it('should seed the array if the array is undefined', function() { 
-        let newEncounter = { count : 3, crRange : { min : 2, max : 8 }, crs : null, cost : 0, done : 0 }
-        let iteration = builder._getNextEncounter(newEncounter);
-        assert.isNotNull(iteration.crs);
-    });
 
     it('should iterate the array if one is provided', function() { 
         let encounter = { count : 2, crRange : { min : 3, max : 6 }, crs : [3, 3], cost : 0, done : 0 }
