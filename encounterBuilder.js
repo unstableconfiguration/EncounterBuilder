@@ -94,21 +94,32 @@ let EncounterBuilder = function() {
 
         for(let monsterCount = countRange.min; monsterCount <= countRange.max; monsterCount++) {
             let xpMultiplier = builder._getMultiplier(playerCount, monsterCount);
-            let encounter = { count : monsterCount, xpCost : 0, crRange : crRange, crs : null, done : false }
+            let encounter = { count : monsterCount, xpCost : 0, crRange : crRange, crs : null }
 
-            while(!encounter.done) {
+            // count is essential for the iterator 
+            // cost is part of the final product 
+            // range is essential for the iterator 
+
+            let breaker = 10000
+            while(breaker > 0) {
+                breaker--;
+
                 encounter = builder._getNextEncounter(encounter);
                 encounter.xpCost = builder._getEncounterCost(encounter.crs, xpMultiplier);
 
                 if(encounter.xpCost > xpRange.min && encounter.xpCost <= xpRange.max) {
                     encounters.push(JSON.parse(JSON.stringify(encounter)));
                 }
-                
+
                 // moving this would also mean passing around the range. 
                 // how bout getnextencounter does not set the xp cost, instead we branch that to another function 
                 /* Performance improvement. Once we have exceeded the xp budget we'll always exceed it with our highest value. */
                 if(encounter.xpCost > xpRange.max) {
                     encounter.crRange.max = builder._lowerChallengeRating(encounter.crRange.max);
+                }
+
+                if(encounter.crs[0] >= encounter.crRange.max) {
+                    break;
                 }
             }
         }
@@ -175,9 +186,6 @@ let EncounterBuilder = function() {
         }
         else { 
             encounter.crs = _iterateEncounter(encounter.crs, encounter.crRange.max);
-            if(encounter.crs[0] >= encounter.crRange.max) {
-                encounter.done = true;
-            }
         }
         return encounter;
     }

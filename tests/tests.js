@@ -67,11 +67,6 @@ describe('_getNextEncounter', function() {
         assert.isTrue(iteration.crs[1] === 4);
     });
     
-    it('should mark "done" when finished iterating', function() { 
-        let encounter = { count : 4, crRange : { min : 5, max : 10 }, crs : [9, 10, 10, 10], done : 0 }
-        let iteration = builder._getNextEncounter(encounter);
-        assert.isTrue(iteration.done);
-    });
 });
 
 describe('_getEncounterCost', function() { 
