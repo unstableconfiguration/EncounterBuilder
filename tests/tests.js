@@ -87,3 +87,14 @@ describe('_getEncounterCost', function() {
     });
 });
 
+describe('_getCRCieling', function() { 
+    it('should lower max cr if max cr has an xp value greater than the threshold', function() { 
+        let crMax = builder._getCRCieling({ min : 0, max : 700 }, { min : 1, max : 4 });
+        assert.isTrue(crMax === 3);
+    });
+
+    it('should leave max cr if max cr has an xp value within the threshold', function() { 
+
+    });
+});
+

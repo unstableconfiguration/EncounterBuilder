@@ -7,7 +7,7 @@ let EncounterBuilder = function() {
     builder.getEncounters = function(arguments) {
         arguments = builder._setDefaults(arguments);
         let groupThresholdRange = builder._getGroupThresholdRange(arguments.players, arguments.difficulty);
-        arguments.crRange.max = _getCRCieling(groupThresholdRange, arguments.crRange);
+        arguments.crRange.max = builder._getCRCieling(groupThresholdRange, arguments.crRange);
         arguments.crRange.min = _getCRFloor(arguments.crRange);
 
         return builder._getEncounters(arguments.players.length, groupThresholdRange, arguments.monsterCountRange, arguments.crRange);
@@ -30,7 +30,7 @@ let EncounterBuilder = function() {
     }
 
     /* If our crRange.max exceeds our xpRange.max, we can lower it to filter out monsters of overly high CRs */
-    let _getCRCieling = function(xpRange, crRange) {
+    builder._getCRCieling = function(xpRange, crRange) {
     for(let i = crRange.max; i > 0; i--){
         if(builder._challengeRatingXPValues[crRange.max] > xpRange.max) {
             crRange.max = builder._lowerChallengeRating(crRange.max);
