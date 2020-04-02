@@ -4,16 +4,37 @@
 
 
     let encounterBuilder = new EncounterBuilder();
-    let arguments = { 
+    let encounterArgs = { 
         characters : [],
-        difficulty : 'Medium',
-        crRange : { min : 1, max : 10 },
-        monsterCountRange : { min : 1, max : 6 }
+        difficulty : '',
+        crRange : { min : 0, max : 0 },
+        monsterCountRange : { min : 0, max : 0 },
+
+        setCharacters : function(value) { 
+            encounterArgs.characters = value 
+                .split(',')
+                .map(c => +c);
+        },
+        setDifficulty : function(value) {
+            encounterArgs.difficulty = value;
+        },
+        setCRMin : function(value) { 
+            encounterArgs.crRange.min = +value;
+        },
+        setCRMax : function(value) { 
+            encounterArgs.crRange.max = +value;
+        },
+        setCountMin : function(value) { 
+            encounterArgs.monsterCountRange.min = +value;
+        },
+        setCountMax : function(value) { 
+            encounterArgs.monsterCountRange.max = +value;
+        },
+        
     };
-    window.arguments = arguments;
 
     let generateEncounters = function() { 
-        let encounters = encounterBuilder.getEncounters(arguments);
+        let encounters = encounterBuilder.getEncounters(encounterArgs);
         output.innerHTML = JSON.stringify(encounters);
     }
 
@@ -24,47 +45,51 @@
     }    
 
     let characters = document.getElementById('characters');
+    encounterArgs.setCharacters(characters.value);
     characters.addEventListener('keyup', (e) => {
         sanitizeInput(e, rgxSanitizeNumberList);
-        arguments.characters = e.target.value.split(',');
-        arguments.characters = arguments.characters.map(i => +i);
+        encounterArgs.setCharacters(e.target.value);
         generateEncounters();
     });
 
     let difficulty = document.getElementById('difficulty');
+    encounterArgs.setDifficulty(difficulty.value);
     difficulty.addEventListener('change', (e)=>{
-        console.log(e.target.value);
+        encounterArgs.setDifficulty(e.target.value);
+        generateEncounters();
     });
 
     let crMin = document.getElementById('crMin');
+    encounterArgs.setCRMin(crMin.value);
     crMin.addEventListener('keyup', (e) => {
         sanitizeInput(e, rgxSanitizeNumbers);
-        arguments.crRange.min = +e.target.value;
+        encounterArgs.setCRMin(e.target.value);
         generateEncounters();
     });
 
     let crMax = document.getElementById('crMax');
+    encounterArgs.setCRMax(crMax.value);
     crMax.addEventListener('keyup', (e) => { 
         sanitizeInput(e, rgxSanitizeNumbers);
-        arguments.crRange.max = +e.target.value;
+        encounterArgs.setCRMax(e.target.value);
         generateEncounters();
     });
 
     let countMin = document.getElementById('monsterCountMin');
+    encounterArgs.setCountMin(countMin.value);
     countMin.addEventListener('keyup', (e) => { 
         sanitizeInput(e, rgxSanitizeNumbers);
-        arguments.monsterCountRange.min = +e.target.value;
+        encounterArgs.setCountMin(e.target.value);
         generateEncounters();
     });
 
     let countMax = document.getElementById('monsterCountMax');
+    encounterArgs.setCountMax(countMax.value);
     countMax.addEventListener('keyup', (e) => {
         sanitizeInput(e, rgxSanitizeNumbers);
-        arguments.monsterCountRange.max = +e.target.value;
+        encounterArgs.setCountMax(e.target.value);
         generateEncounters();
     });
 
-    
-    
 
 })();
