@@ -1,19 +1,18 @@
 
 
-(()=>{
-
+(() => {
 
     let encounterBuilder = new EncounterBuilder();
     let encounterArgs = { 
-        characters : [],
+        players : [],
         difficulty : '',
         crRange : { min : 0, max : 0 },
         monsterCountRange : { min : 0, max : 0 },
 
         setCharacters : function(value) { 
-            encounterArgs.characters = value 
+            encounterArgs.players = value 
                 .split(',')
-                .map(c => +c);
+                .map(c => { return { level : +c } });
         },
         setDifficulty : function(value) {
             encounterArgs.difficulty = value;
@@ -34,7 +33,7 @@
     };
 
     let generateEncounters = function() { 
-        let encounters = encounterBuilder.getEncounters(encounterArgs);
+        let encounters = encounterBuilder.getEncounters(args);
         output.innerHTML = JSON.stringify(encounters);
     }
 

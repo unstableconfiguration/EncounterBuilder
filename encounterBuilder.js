@@ -58,21 +58,23 @@ let EncounterBuilder = function() {
         }
     });
 
-    builder.getEncounters = function(arguments) {
-        arguments = builder._setDefaults(arguments);
-        let groupThresholdRange = builder._getGroupThresholdRange(arguments.players, arguments.difficulty);
-        arguments.crRange.max = builder._getCRCieling(groupThresholdRange, arguments.crRange);
-        arguments.crRange.min = builder._getCRFloor(arguments.crRange);
+    builder.getEncounters = function(args) {
+        args = builder._setDefaults(args);
+        let groupThresholdRange = builder._getGroupThresholdRange(args.players, args.difficulty);
+        args.crRange.max = builder._getCRCieling(groupThresholdRange, args.crRange);
+        args.crRange.min = builder._getCRFloor(args.crRange);
 
-        return builder._getEncounters(arguments.players.length, groupThresholdRange, arguments.monsterCountRange, arguments.crRange);
+        return builder._getEncounters(args.players.length, groupThresholdRange, args.monsterCountRange, args.crRange);
     }
 
-    builder._setDefaults = function(arguments) { 
-        arguments.players = arguments.players || [];
-        arguments.crRange = arguments.crRange || { min : .135, max : 30 };
-        arguments.monsterCountRange = arguments.monsterCountRange || { min : 1, max : 15 };
-        arguments.difficulty = arguments.difficulty || 'Medium';
-        return arguments;
+    builder._setDefaults = function(args) { 
+        args = JSON.parse(JSON.stringify(args));
+        let encounterArgs = {};
+        encounterArgs.players = args.players || [];
+        encounterArgs.crRange = args.crRange || { min : .135, max : 30 };
+        encounterArgs.monsterCountRange = args.monsterCountRange || { min : 1, max : 15 };
+        encounterArgs.difficulty = args.difficulty || 'Medium';
+        return encounterArgs;
     }
 
     builder._getGroupThresholdRange = function(players, difficulty) {

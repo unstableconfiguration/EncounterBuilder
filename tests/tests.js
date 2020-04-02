@@ -111,3 +111,11 @@ describe('_getCRFloor', function() {
     });
 });
 
+describe('_setDefaults', function() { 
+    it('should create a deep copy of the arguments', function() { 
+        let args = { crRange : { min : 0, max : 0 } };
+        let defaults = builder._setDefaults(args);
+        assert.isTrue(args.crRange.max === 0);
+    });
+});
+
