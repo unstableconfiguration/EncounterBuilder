@@ -6,7 +6,10 @@
 
     <div id='content'>
         <div id='inputContainer'>
-            <input type='text' id='characters'/>
+            <div id='characterContainer'>
+                <span>Character Levels:</span>
+                <input type='text' id='characters' placeholder='1, 2, 3'/>
+            </div>
             <div id='difficultyContainer'>
                 <span>Difficulty:</span>
                 <select id='difficulty'>
@@ -18,9 +21,9 @@
             </div>
             <div id='challengeRatingContainer'>
                 <span>Min CR:</span>
-                <input id='challengeRatingMin' type='text' value='1'/>
+                <input id='crMin' type='text' value='1'/>
                 <span>Max CR:</span>
-                <input id='challengeRatingMax' type='text' value='20'/>
+                <input id='crMax' type='text' value='10'/>
             </div>
             <div id='monsterCountContainer'>
                 <span>Min Count:</span>
@@ -36,8 +39,5 @@
         </div>
     </div>
 
-
-    
-
-
 </body>
+<script src='demo.js'></script>
