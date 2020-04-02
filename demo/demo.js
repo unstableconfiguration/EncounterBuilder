@@ -2,6 +2,26 @@
 
 (() => {
 
+    let populateCRDropDowns = function(dropDown, defaultValue) {
+        let createSelect = function(display, value) {
+            let option = document.createElement('option');
+            option.innerText = display;
+            option.value = value;
+            if(value === defaultValue) {
+                option.selected = true;
+            }
+            dropDown.appendChild(option);
+        }
+
+        createSelect('0', 0);
+        createSelect('1/8', .135);
+        createSelect('1/4', .25);
+        createSelect('1/2', .5);
+        for(let i = 1; i < 30; i++) {
+            createSelect(i, i)
+        };
+    }
+
     let encounterBuilder = new EncounterBuilder();
     let encounterArgs = { 
         players : [],
@@ -12,7 +32,7 @@
         setCharacters : function(value) { 
             encounterArgs.players = value 
                 .split(',')
-                .map(c => { return { level : +c } });
+                .map(c => { return { level : +c||0 } });
         },
         setDifficulty : function(value) {
             encounterArgs.difficulty = value;
@@ -33,8 +53,11 @@
     };
 
     let generateEncounters = function() { 
-        let encounters = encounterBuilder.getEncounters(args);
-        output.innerHTML = JSON.stringify(encounters);
+        let encounters = encounterBuilder.getEncounters(encounterArgs);
+        output.innerHTML = '';
+        for(let i = 0; i < encounters.length; i++){
+            output.innerHTML += '<br>' + JSON.stringify(encounters[i]);
+        }
     }
 
     let rgxSanitizeNumbers = /[^\d]/g;
@@ -59,17 +82,17 @@
     });
 
     let crMin = document.getElementById('crMin');
+    populateCRDropDowns(crMin, 1);
     encounterArgs.setCRMin(crMin.value);
-    crMin.addEventListener('keyup', (e) => {
-        sanitizeInput(e, rgxSanitizeNumbers);
+    crMin.addEventListener('change', (e) => {
         encounterArgs.setCRMin(e.target.value);
         generateEncounters();
     });
 
     let crMax = document.getElementById('crMax');
+    populateCRDropDowns(crMax, 5);
     encounterArgs.setCRMax(crMax.value);
-    crMax.addEventListener('keyup', (e) => { 
-        sanitizeInput(e, rgxSanitizeNumbers);
+    crMax.addEventListener('change', (e) => { 
         encounterArgs.setCRMax(e.target.value);
         generateEncounters();
     });
@@ -89,6 +112,5 @@
         encounterArgs.setCountMax(e.target.value);
         generateEncounters();
     });
-
 
 })();

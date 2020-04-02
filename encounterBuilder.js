@@ -112,6 +112,9 @@ let EncounterBuilder = function() {
 
     builder._getPlayerThresholdRange = function(player, difficulty) { 
         let playerXPThreshold = { min : 0, max : 0 };
+        if(!player.level) {
+            return playerXPThreshold;
+        }
         
         let lowerDifficulty = 'Easy';
         if(difficulty === 'Deadly') { lowerDifficulty = 'Hard'; }
@@ -199,7 +202,7 @@ let EncounterBuilder = function() {
                 encounter.crs[idx] = builder._raiseChallengeRating(value);
             }
             else { 
-                if(idx === 0) { return; }
+                if(idx <= 0) { return; }
                 iterateEncounter(idx-1);
 
                 /* Performance tweak. 
