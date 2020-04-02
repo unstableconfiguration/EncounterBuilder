@@ -72,6 +72,7 @@ let EncounterBuilder = function() {
         arguments.crRange = arguments.crRange || { min : .135, max : 30 };
         arguments.monsterCountRange = arguments.monsterCountRange || { min : 1, max : 15 };
         arguments.difficulty = arguments.difficulty || 'Medium';
+        return arguments;
     }
 
     builder._getGroupThresholdRange = function(players, difficulty) {
